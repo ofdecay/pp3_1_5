@@ -8,6 +8,8 @@ import ru.kata.spring.boot_security.demo.entities.User;
 import ru.kata.spring.boot_security.demo.services.RoleService;
 import ru.kata.spring.boot_security.demo.services.UserService;
 
+import java.security.Principal;
+
 
 @Controller
 @RequestMapping("/admin")
@@ -18,8 +20,11 @@ public class AdminController {
     private RoleService roleService;
 
     @GetMapping("")
-    public String allUsers(Model model) {
+    public String allUsers(Model model, Principal principal) {
         model.addAttribute("users", userService.findAll());
+        model.addAttribute("userAuth", userService.findByUsername(principal.getName()));
+        model.addAttribute("newUser", new User());
+        model.addAttribute("roles", roleService.findAll());
         return "admin/users";
     }
 
@@ -30,8 +35,8 @@ public class AdminController {
         return "admin/new";
     }
 
-    @PostMapping("/new")
-    public String create(User user) {
+    @PostMapping()
+    public String create(@ModelAttribute("user") User user) {
         userService.save(user);
         return "redirect:/admin";
     }
@@ -41,6 +46,12 @@ public class AdminController {
         model.addAttribute("user", userService.findById(id));
         model.addAttribute("roles", roleService.findAll());
         return "admin/edit";
+    }
+
+    @GetMapping("/{id}")
+    public String getOneUser(@PathVariable("id") Long id, Model model) {
+        model.addAttribute("user", userService.findById(id));
+        return "/admin/users";
     }
 
     @PatchMapping("/{id}")
